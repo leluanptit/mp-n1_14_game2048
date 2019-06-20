@@ -34,7 +34,7 @@ public class oVuong extends android.support.v7.widget.AppCompatTextView {
         } else if (so < 1000) {
             setTextSize(35);
         } else {
-            setTextSize(30);
+            setTextSize(25);
         }
         if (so >= 8) {
             setTextColor(Color.WHITE);

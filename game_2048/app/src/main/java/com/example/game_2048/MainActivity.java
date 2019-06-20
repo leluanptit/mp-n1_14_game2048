@@ -1,10 +1,13 @@
 package com.example.game_2048;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Layout;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -14,6 +17,7 @@ import android.widget.Toast;
 import java.nio.file.Files;
 
 public class MainActivity extends AppCompatActivity {
+    private boolean gioiHanDiem = false;
     private GridView gdvGamePlay;
     private oSoAdapter oSoAdapter;
     private View.OnTouchListener listener;
@@ -21,25 +25,28 @@ public class MainActivity extends AppCompatActivity {
     TextView txtvDiem, txtvDiemMax, txtBackupPoint;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
-    private ImageButton imgbPlay;
     private TextView txtWonMessage;
     private ImageView imgViewRorateStep;
+    private boolean StartPreviousGame = false;
+
+    //    private Layout firstwindow;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         AnhXa();
-        imgbPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startGame();
-                imgbPlay.setVisibility(View.INVISIBLE);
-            }
-        });
+        Intent intent = getIntent();
+        gioiHanDiem = intent.getBooleanExtra("gioiHanDiem", false);// đọc giá trị intent gửi sang
+        StartPreviousGame = intent.getBooleanExtra("StartPreviousGame",false);
+        startGame();
         RorateStep();
-        txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint()+"");
+        txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint() + "");
     }
-    public void startGame(){
+
+    public void startGame() {
+        if(StartPreviousGame){
+            dataGame.getDataGame().setStartPreviousGame(StartPreviousGame);
+        }
         sharedPreferences = getSharedPreferences("diemMax", MODE_PRIVATE);
         editor = sharedPreferences.edit();
 //        editor.putInt("diemMax", 0);
@@ -51,11 +58,13 @@ public class MainActivity extends AppCompatActivity {
             txtvDiemMax.setText(sharedPreferences.getInt("diemMax", -1) + "");
             dataGame.getDataGame().setDiemMax(sharedPreferences.getInt("diemMax", -1));
         }
+        dataGame.getDataGame().setGioiHanDiem(gioiHanDiem);
+        dataGame.getDataGame().setSharedPreferences(sharedPreferences);
         KhoiTao();
         setData();
     }
 
-    private void RorateStep(){
+    private void RorateStep() {
         imgViewRorateStep.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,11 +75,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private void AnhXa() {
         gdvGamePlay = (GridView) findViewById(R.id.grvGamePlay);
         txtvDiem = findViewById(R.id.txtvDiem);
         txtvDiemMax = findViewById(R.id.txtvDiemMax);
-        imgbPlay = findViewById(R.id.imageButtonPlay);
         txtWonMessage = findViewById(R.id.txtWonMessage);
         imgViewRorateStep = findViewById(R.id.ImgViewRorate);
         txtBackupPoint = findViewById(R.id.txtvBackupPoint);
@@ -89,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
                         y = event.getY();
                         break;
                     case MotionEvent.ACTION_UP:
-                        if(event.getY()==y &&  event.getX()==x){
+                        if (event.getY() == y && event.getX() == x) {// chạm và thả giống nhau
+
                             break;
                         }
                         if (Math.abs(event.getX() - x) > Math.abs(event.getY() - y)) {
@@ -98,10 +108,9 @@ public class MainActivity extends AppCompatActivity {
                                 oSoAdapter.notifyDataSetChanged();
                                 if (dataGame.getDataGame().kiemTra() == false) {
                                     System.out.println("end game");
-                                    imgbPlay.setVisibility(View.VISIBLE);
                                 }
                                 txtvDiem.setText(dataGame.getDataGame().getDiem() + "");
-                                txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint()+"");
+                                txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint() + "");
                                 if (dataGame.getDataGame().getDiem() > dataGame.getDataGame().getDiemMax()) {
                                     dataGame.getDataGame().setDiemMax(dataGame.getDataGame().getDiem());
                                     txtvDiemMax.setText(dataGame.getDataGame().getDiemMax() + "");
@@ -114,10 +123,9 @@ public class MainActivity extends AppCompatActivity {
                                 oSoAdapter.notifyDataSetChanged();
                                 if (dataGame.getDataGame().kiemTra() == false) {
                                     System.out.println("end game");
-                                    imgbPlay.setVisibility(View.VISIBLE);
                                 }
                                 txtvDiem.setText(dataGame.getDataGame().getDiem() + "");
-                                txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint()+"");
+                                txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint() + "");
                                 if (dataGame.getDataGame().getDiem() > dataGame.getDataGame().getDiemMax()) {
                                     dataGame.getDataGame().setDiemMax(dataGame.getDataGame().getDiem());
                                     txtvDiemMax.setText(dataGame.getDataGame().getDiemMax() + "");
@@ -131,10 +139,9 @@ public class MainActivity extends AppCompatActivity {
                                 oSoAdapter.notifyDataSetChanged();
                                 if (dataGame.getDataGame().kiemTra() == false) {
                                     System.out.println("end game");
-                                    imgbPlay.setVisibility(View.VISIBLE);
                                 }
                                 txtvDiem.setText(dataGame.getDataGame().getDiem() + "");
-                                txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint()+"");
+                                txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint() + "");
                                 if (dataGame.getDataGame().getDiem() > dataGame.getDataGame().getDiemMax()) {
                                     dataGame.getDataGame().setDiemMax(dataGame.getDataGame().getDiem());
                                     txtvDiemMax.setText(dataGame.getDataGame().getDiemMax() + "");
@@ -146,11 +153,10 @@ public class MainActivity extends AppCompatActivity {
                                 oSoAdapter.notifyDataSetChanged();
                                 if (dataGame.getDataGame().kiemTra() == false) {
                                     System.out.println("end game");
-                                    imgbPlay.setVisibility(View.VISIBLE);
                                 }
                             }
                             txtvDiem.setText(dataGame.getDataGame().getDiem() + "");
-                            txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint()+"");
+                            txtBackupPoint.setText(dataGame.getDataGame().getBackupPoint() + "");
                             if (dataGame.getDataGame().getDiem() > dataGame.getDataGame().getDiemMax()) {
                                 dataGame.getDataGame().setDiemMax(dataGame.getDataGame().getDiem());
                                 txtvDiemMax.setText(dataGame.getDataGame().getDiemMax() + "");
@@ -160,10 +166,9 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
                 }
-                if (dataGame.getDataGame().KiemTraChienThang()){
+                if (dataGame.getDataGame().KiemTraChienThang()) {
                     System.out.println("end game");
                     txtWonMessage.setText("bạn đã chiến thắng tuyệt đối");
-                    imgbPlay.setVisibility(View.VISIBLE);
                 }
                 return true;
             }

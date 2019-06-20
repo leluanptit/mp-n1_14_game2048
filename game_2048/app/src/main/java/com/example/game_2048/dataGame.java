@@ -8,10 +8,15 @@ import android.preference.Preference;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.Random;
 
 public class dataGame {
+    private SharedPreferences.Editor editor;
+    private boolean flag = false;
+    private boolean gioiHanDiem = false;
     private int BackupPoint;
     private int BackupLandmark;
     private boolean rorareState;
@@ -24,9 +29,75 @@ public class dataGame {
     private int[][] mangHaiChieuLuiBuoc = new int[4][4];
     private int[] mangMau;
     private Random r = new Random();
+    private PreviousData previousData;
+    private Gson gson = new Gson();
+    private SharedPreferences sharedPreferences;
+    private boolean startPreviousGame = false;
 
     static {
         dataGame = new dataGame();
+    }
+
+    public SharedPreferences getSharedPreferences() {
+        return sharedPreferences;
+    }
+
+    public boolean isStartPreviousGame() {
+        return startPreviousGame;
+    }
+
+    public void setStartPreviousGame(boolean startPreviousGame) {
+        this.startPreviousGame = startPreviousGame;
+    }
+
+    public void setSharedPreferences(SharedPreferences sharedPreferences) {
+        this.sharedPreferences = sharedPreferences;
+        editor = sharedPreferences.edit();
+    }
+
+    public void saveData() {
+        previousData = new PreviousData(gioiHanDiem, BackupPoint, BackupLandmark, rorareState, diem, diemMax, arraySo, arraySoLuiBuoc, mangHaiChieu,
+                mangHaiChieuLuiBuoc);
+        String json = gson.toJson(previousData);
+        System.out.println(json);
+        editor.putBoolean("flag", flag);
+        editor.putString("json", (json));
+        editor.commit();
+    }
+
+
+    public void readPreviousData() {
+        if (startPreviousGame) {
+            System.out.println(sharedPreferences.getBoolean("flag", false));
+            String json = sharedPreferences.getString("json", "null");
+            this.previousData = gson.fromJson(json, PreviousData.class);
+
+            this.arraySo = previousData.getArraySo();
+            this.mangHaiChieu = previousData.getMangHaiChieu();
+            this.gioiHanDiem = previousData.isGioiHanDiem();
+            this.arraySoLuiBuoc = previousData.getArraySoLuiBuoc();
+            this.BackupPoint = previousData.getBackupPoint();
+            this.BackupLandmark = previousData.getBackupLandmark();
+            this.diem = previousData.getDiem();
+            this.diemMax = previousData.getDiemMax();
+            this.rorareState = previousData.isRorareState();
+            this.gioiHanDiem = previousData.isGioiHanDiem();
+
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    System.out.print(previousData.getMangHaiChieu()[i][j] + "");
+                }
+            }
+            this.startPreviousGame = false;
+        } else ;
+    }
+
+    public void setGioiHanDiem(boolean gioiHanDiem) {
+        this.gioiHanDiem = gioiHanDiem;
+    }
+
+    public void setEditor(SharedPreferences.Editor editor) {
+        this.editor = editor;
     }
 
     public static dataGame getDataGame() {
@@ -39,15 +110,16 @@ public class dataGame {
 
     public void intt(Context context) {
         BackupLandmark = 2 * 5;
-        BackupPoint = 1;
+        BackupPoint = 1;// điểm ban đầu có thể quay lại
+        flag = true;
         diem = 0;
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 mangHaiChieu[i][j] = 0;
-                arraySo.add(0);
+                arraySo.add(0);// thêm 16 giá trị vào mảng( gtri ban đầu)
             }
         }
-        TypedArray ta = context.getResources().obtainTypedArray(R.array.mauNenCuaSo);
+        TypedArray ta = context.getResources().obtainTypedArray(R.array.mauNenCuaSo);//lưu màu nền
         mangMau = new int[ta.length()];
         for (int i = 0; i < ta.length(); i++) {
             mangMau[i] = ta.getColor(i, 0);
@@ -79,6 +151,18 @@ public class dataGame {
         }
     }
 
+    public void Delete2048() {
+        if (gioiHanDiem) {
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    if (mangHaiChieu[i][j] == 64) {
+                        mangHaiChieu[i][j] = 0;
+                    }
+                }
+            }
+        } else ;
+    }
+
     public void backupData() {
         if (diem >= BackupLandmark) {
             if (this.rorareState == true) {
@@ -92,11 +176,11 @@ public class dataGame {
                 chuyenDoi();
                 SaveData(false);
             }
-        }else;
+        } else ;
     }
 
     public void taoSo() {
-        int so0 = 0;
+        int so0 = 0;// số các số 0 trong ma trận
 //        for (int i = 0; i < 16; i++) {
 //            if (arraySo.get(i)%(32)==1) {
 //                BackupPoint++;
@@ -109,7 +193,7 @@ public class dataGame {
         }
         int soOTao;
         if (so0 > 1) {
-            soOTao = r.nextInt(2) + 1;
+            soOTao = r.nextInt(2) + 1;//tạo ngẫu nhiên 1 hay 2 số
         } else {
             if (so0 == 1) {
                 soOTao = 1;
@@ -120,7 +204,8 @@ public class dataGame {
         while (soOTao != 0) {
             int i = r.nextInt(4), j = r.nextInt(4);
             if (mangHaiChieu[i][j] == 0) {
-                mangHaiChieu[i][j] = (new Random().nextInt(2) + 1) * 2;
+                mangHaiChieu[i][j] = (new Random().nextInt(2) + 1) * 2;//taọ số bất kì từ 2 4
+//                mangHaiChieu[i][j] = 1024;
 //                mangHaiChieu[i][j] = 32768;
                 diem += mangHaiChieu[i][j];
                 System.out.println("this is a message!");
@@ -130,13 +215,16 @@ public class dataGame {
     }
 
     public void chuyenDoi() {
+        readPreviousData();
         arraySo.clear();
+        Delete2048();
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 arraySo.add(mangHaiChieu[i][j]);
             }
         }
-
+        saveData();
+        readPreviousData();
     }
 
     public void vuotPhai() {
@@ -389,6 +477,7 @@ public class dataGame {
 
             }
         }
+        flag = false;
         return false;
     }
 
